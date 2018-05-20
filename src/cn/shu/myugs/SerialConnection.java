@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -130,7 +131,8 @@ public class SerialConnection extends Connection implements SerialPortEventListe
     public void sendStringToComm(String command) {
         // Send command to the serial port.
         PrintStream printStream = new PrintStream(this.out);
-        printStream.print(command);
+        printStream.print(command); // 字符串的字符是根据平台的默认字符转换为字节编码
+        System.out.println("发送的字符串："+command);
         printStream.close(); 
     }
         
@@ -161,7 +163,10 @@ public class SerialConnection extends Connection implements SerialPortEventListe
 
                     // Read from serial port
                     in.read(readBuffer, 0, availableBytes);
+                    //System.out.println("接收：" + (byte)in.read(readBuffer, 0, availableBytes));
                     inputBuffer.append(new String(readBuffer, 0, availableBytes));
+                    System.out.println("接收的数据："+Arrays.toString(readBuffer));
+                    System.out.println("接收的数据构造的字符串："+inputBuffer);
 
                     // Check for line terminator and split out command(s).
                     if (inputBuffer.toString().contains(comm.getLineTerminator())) {
@@ -170,13 +175,17 @@ public class SerialConnection extends Connection implements SerialPortEventListe
                         String []commands = inputBuffer.toString().split(comm.getLineTerminator(), -1);
                         for (int i=0; i < commands.length; i++) {
                             // Make sure this isn't the last command.
+                        	//System.out.println(commands.length);
                             if ((i+1) < commands.length) {
                                 comm.responseMessage(commands[i]);
+                                //System.out.println("Command1:"+commands[i]);
                             // Append last command to input buffer because it didn't have a terminator.
                             } else {
                                 inputBuffer = new StringBuilder().append(commands[i]);
+                                //System.out.println("inputBuffer:"+inputBuffer);
                             }
                         }
+                        //System.out.println("Command2:"+Arrays.toString(commands));
                     }
                 }                
             }
